@@ -19,7 +19,7 @@ def main(event:, context:)
 
     if event['path']  == '/token'
         if event['httpMethod'] == 'POST'
-            if get_downcase_key(hash: event['headers'], key: 'content-type').downcase == 'application/json'
+            if get_downcase_key(hash: event['headers'], key: 'content-type') == 'application/json'
                 # try to parse, return 422 if fail
                 begin
                     # Valid POST on /token with JOSN
