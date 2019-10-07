@@ -53,6 +53,8 @@ def main(event:, context:)
                         return response(body: response_body, status: 200)
                     rescue JWT::ImmatureSignature
                         return response(status: 401)
+                    rescue JWT::DecodeError
+                        return response(status: 403)
                     rescue JWT::ExpiredSignature
                         return response(status: 401)
                     end
