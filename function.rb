@@ -5,9 +5,60 @@ require 'jwt'
 require 'pp'
 
 def main(event:, context:)
-  # You shouldn't need to use context, but its fields are explained here:
-  # https://docs.aws.amazon.com/lambda/latest/dg/ruby-context.html
-  response(body: event, status: 200)
+    # You shouldn't need to use context, but its fields are explained here:
+    # https://docs.aws.amazon.com/lambda/latest/dg/ruby-context.html
+
+    if event['path']  == '/token'
+        if event['httpMethod'] == 'POST'
+            if event['headers']['Content-Type'] == 'application/json'
+                # try to parse, return 422 if fail
+                begin
+                    # Valid POST on /token with JOSN
+                    # TODO: check this part for requirement
+                    request_body = JSON.parse(event['body']) #suppose to be another hash?
+                    payload = {
+                          data: request_body,
+                          exp: Time.now.to_i + 5,
+                          nbf: Time.now.to_i + 2
+                      }
+                    token = JWT.encode payload, ENV["JWT_SECRET"], "HS256"
+                    response_body = {"token" => token}
+                    return response(body:response_body, statusCode: 201)
+                rescue JSON::ParserError => e
+                    return response(statusCode: 422)
+                end
+            else
+                return response(statusCode: 415)
+            end
+        else
+            response(statusCode: 405)
+        end
+    elsif event['path'] == '/'
+        if event['httpMethod'] == 'GET'
+            if event['headers'].key?('Authorization')
+                if event['headers']['Authorization'][0..7] == 'Bearer '
+                    token = event['headers']['Authorization'][8..-1]
+                    begin
+                        decoded = JWS.decode token, ENV['JWT_SECRET'], true, {algorithm: 'HS256'}
+                        response_body = decoded[0]['data']
+                        return response(body: response_body, statusCode: 200)
+                    rescue JWT::ImmatureSignature
+                        return response(statusCode: 401)
+                    rescue JWT::ExpiredSignature
+                        return response(statusCode: 401)
+                    end
+                else
+                    response(statusCode: 403)
+                end
+            else
+                response(statusCode: 403)
+            end
+        else
+            response(statusCode: 405)
+        end
+    else
+        response(statusCode: 404)
+    end
 end
 
 def response(body: nil, status: 200)
