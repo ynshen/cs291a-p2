@@ -34,6 +34,8 @@ def main(event:, context:)
                     return response(body:response_body, status: 201)
                 rescue JSON::ParserError
                     return response(status: 422)
+                rescue TypeError
+                    return response(status: 422)
                 end
             else
                 return response(status: 415)
@@ -87,7 +89,7 @@ if $PROGRAM_NAME == __FILE__
 
   # Call /token
   PP.pp main(context: {}, event: {
-               'body' => '{"name": "bboe"}',
+               'body' => '{}',
                'headers' => { 'Content-Type' => 'application/json' },
                'httpMethod' => 'POST',
                'path' => '/token'
