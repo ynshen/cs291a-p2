@@ -6,10 +6,12 @@ require 'pp'
 
 def get_downcase_key(hash:, key:)
     begin
-        return hash.select(|k, v| k.downcase == key).values[0]
+        selected = hash.select {|k, v| k.downcase == key}
+        return selected.values[0]
     rescue
         return false
     end
+end
 
 def main(event:, context:)
     # You shouldn't need to use context, but its fields are explained here:
@@ -41,8 +43,8 @@ def main(event:, context:)
         end
     elsif event['path'] == '/'
         if event['httpMethod'] == 'GET'
-            if get_downcase_key(event['headers'], 'authorization') is not false
-                auth = get_downcase_key(event['headers'], 'authorization'})
+            auth = get_downcase_key(hash: event['headers'], key: 'authorization')
+            if auth != false
                 if (auth.is_a? String) and (auth.include? "Bearer") and (auth[0..6] == 'Bearer ')
                     token = auth[7..-1]
                     begin
