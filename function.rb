@@ -23,41 +23,46 @@ def main(event:, context:)
                       }
                     token = JWT.encode payload, ENV["JWT_SECRET"], "HS256"
                     response_body = {"token" => token}
-                    return response(body:response_body, statusCode: 201)
+                    return response(body:response_body, status: 201)
                 rescue JSON::ParserError => e
-                    return response(statusCode: 422)
+                    return response(status: 422)
                 end
             else
-                return response(statusCode: 415)
+                return response(status: 415)
             end
         else
-            response(statusCode: 405)
+            response(status: 405)
         end
     elsif event['path'] == '/'
         if event['httpMethod'] == 'GET'
             if event['headers'].key?('Authorization')
-                if event['headers']['Authorization'][0..7] == 'Bearer '
-                    token = event['headers']['Authorization'][8..-1]
+                #puts event['headers']['Authorization']
+                #puts event['headers']['Authorization'][0..6]
+                if event['headers']['Authorization'][0..6] == 'Bearer '
+                    token = event['headers']['Authorization'][7..-1]
+                    #puts token
                     begin
-                        decoded = JWS.decode token, ENV['JWT_SECRET'], true, {algorithm: 'HS256'}
+                        decoded = JWT.decode token, ENV['JWT_SECRET'], true, {algorithm: 'HS256'}
                         response_body = decoded[0]['data']
-                        return response(body: response_body, statusCode: 200)
+                        return response(body: response_body, status: 200)
                     rescue JWT::ImmatureSignature
-                        return response(statusCode: 401)
+                        return response(status: 401)
                     rescue JWT::ExpiredSignature
-                        return response(statusCode: 401)
+                        return response(status: 401)
                     end
                 else
-                    response(statusCode: 403)
+                    #puts 'Bearer failed'
+                    response(status: 403)
                 end
             else
-                response(statusCode: 403)
+                #puts "Nno Authorization"
+                response(status: 403)
             end
         else
-            response(statusCode: 405)
+            response(status: 405)
         end
     else
-        response(statusCode: 404)
+        response(status: 404)
     end
 end
 
