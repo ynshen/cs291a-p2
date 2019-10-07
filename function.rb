@@ -32,7 +32,7 @@ def main(event:, context:)
                     token = JWT.encode payload, ENV["JWT_SECRET"], "HS256"
                     response_body = {"token" => token}
                     return response(body:response_body, status: 201)
-                rescue JSON::ParserError => e
+                rescue JSON::ParserError
                     return response(status: 422)
                 end
             else
