@@ -4,18 +4,24 @@ require 'json'
 require 'jwt'
 require 'pp'
 
+def get_downcase_key(hash:, key:)
+    begin
+        return hash.select(|k, v| k.downcase == key).values[0]
+    rescue
+        return false
+    end
+
 def main(event:, context:)
     # You shouldn't need to use context, but its fields are explained here:
     # https://docs.aws.amazon.com/lambda/latest/dg/ruby-context.html
 
     if event['path']  == '/token'
         if event['httpMethod'] == 'POST'
-            if event['headers']['Content-Type'] == 'application/json'
+            if get_downcase_key(hash: event['headers'], key: 'content-type').downcase == 'application/json'
                 # try to parse, return 422 if fail
                 begin
                     # Valid POST on /token with JOSN
-                    # TODO: check this part for requirement
-                    request_body = JSON.parse(event['body']) #suppose to be another hash?
+                    request_body = JSON.parse(event['body'])
                     payload = {
                           data: request_body,
                           exp: Time.now.to_i + 5,
@@ -35,9 +41,10 @@ def main(event:, context:)
         end
     elsif event['path'] == '/'
         if event['httpMethod'] == 'GET'
-            if event['headers'].key?('Authorization')
-                if (event['headers']['Authorization'].is_a? String) and (event['headers']['Authorization'].include? "Bearer") and (event['headers']['Authorization'][0..6] == 'Bearer ')
-                    token = event['headers']['Authorization'][7..-1]
+            if get_downcase_key(event['headers'], 'authorization') is not false
+                auth = get_downcase_key(event['headers'], 'authorization'})
+                if (auth.is_a? String) and (auth.include? "Bearer") and (auth[0..6] == 'Bearer ')
+                    token = auth[7..-1]
                     begin
                         decoded = JWT.decode token, ENV['JWT_SECRET'], true, {algorithm: 'HS256'}
                         response_body = decoded[0]['data']
