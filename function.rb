@@ -36,11 +36,8 @@ def main(event:, context:)
     elsif event['path'] == '/'
         if event['httpMethod'] == 'GET'
             if event['headers'].key?('Authorization')
-                #puts event['headers']['Authorization']
-                #puts event['headers']['Authorization'][0..6]
-                if event['headers']['Authorization'][0..6] == 'Bearer '
+                if (event['headers']['Authorization'].is_a? String) and (event['headers']['Authorization'].include? "Bearer") and (event['headers']['Authorization'][0..6] == 'Bearer ')
                     token = event['headers']['Authorization'][7..-1]
-                    #puts token
                     begin
                         decoded = JWT.decode token, ENV['JWT_SECRET'], true, {algorithm: 'HS256'}
                         response_body = decoded[0]['data']
@@ -51,11 +48,9 @@ def main(event:, context:)
                         return response(status: 401)
                     end
                 else
-                    #puts 'Bearer failed'
                     response(status: 403)
                 end
             else
-                #puts "Nno Authorization"
                 response(status: 403)
             end
         else
