@@ -109,25 +109,4 @@ if $PROGRAM_NAME == __FILE__
                'httpMethod' => 'GET',
                'path' => '/'
              })
-
-  token = main(context: {}, event: {
-                  'body' => '{}',
-                  'headers' => { 'Content-Type' => 'application/json' },
-                  'httpMethod' => 'POST',
-                  'path' => '/token'
-                })
-  token = JSON.parse(token[:body])
-  token = token['token']
-  puts 'Sleeping for 5 seconds...'
-  sleep(5)
-
-
-  PP.pp main(context: {}, event: {
-               'headers' => { 'Authorization' => "Bearer #{token}",
-                              'Content-Type' => 'application/json' },
-               'httpMethod' => 'GET',
-               'path' => '/'
-             })
-
-
 end
